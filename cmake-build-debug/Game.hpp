@@ -8,6 +8,8 @@
 #include <stdexcept>
 #include <vector>
 
+#include "Player.hpp"
+
 
 namespace player {
     class Player;
@@ -23,13 +25,19 @@ namespace game {
 
     class Game {
         std::vector<player::Player> players;
+        player::Player current_player;
 
     public:
         Game();
 
         ~Game();
 
-        void playTurn();
+        void playTurn() {
+            player::Player::PAction action = chooseAction(current_player);
+
+            if (!action.offerBlock(players))
+                action.act();
+        }
 
         bool isWin() const;
 
