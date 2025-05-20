@@ -4,8 +4,10 @@ project(Ex3)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(Ex3 main.cpp
-        cmake-build-debug/Player.cpp
-        cmake-build-debug/Player.hpp
-        cmake-build-debug/Game.cpp
-        cmake-build-debug/Game.hpp
-        cmake-build-debug/typetools.hpp)
+        player.cpp
+        player.hpp
+        game.cpp
+        game.hpp
+        typetools.hpp
+        GameActions.cpp
+        GameActions.hpp)
