@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <algorithm>
 #include <stdexcept>
 #include <vector>
 
@@ -61,6 +60,7 @@ namespace game {
         static player::Player &pickTarget(const PlayerList &players);
 
         static Game::Action *pickAction(player::Player &, Game &game);
+
         player::Player *queryActionBlockers(
             const PlayerList &players, const player::Player *current_player,
             const Game::Action *current_action
