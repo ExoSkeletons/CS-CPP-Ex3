@@ -7,23 +7,38 @@
 #include <format>
 #include <string>
 
+namespace game {
+    class Game;
+}
+
 namespace player {
     class Player {
-        std::string name = "";
-        int coins = 0;
-        int actions = 1;
-        bool arrested = false, sanctioned = false;
+        std::string name = "Unnamed Player";
 
-    public:
+        int coins = 3, actions = 1;
+
+        bool
+                arrested = false,
+                sanctioned = false,
+                hand_shown = false,
+                protected_ = false,
+                must_coup = false;
+
+    protected:
         Player() {}
 
+    public:
         Player(Player const &copy) = default;
 
         Player &operator=(Player const &copy) = default;
 
         virtual ~Player() = default;
 
+        Player *setName(std::string const &name);
+
         std::string getName() const { return name; }
+
+        virtual std::string getRoleName() = 0;
 
         int getCoins() const { return this->coins; }
 
@@ -37,28 +52,58 @@ namespace player {
 
         void act();
 
-        virtual void startTurn();
+        void endTurn() { actions = 0; }
 
-        virtual void endTurn();
+        virtual void onTurnStart();
+
+        virtual void onTurnEnd();
+
+        virtual void onAnyTurnStart() {}
+
+        virtual void onAnyTurnEnd();
 
         void arrest() { arrested = true; }
         void sanction() { sanctioned = true; }
+        void reveal() { hand_shown = true; }
+        void protect() { protected_ = true; }
+        void clearCoupReq() { must_coup = false; }
 
         bool isArrested() const { return arrested; }
         bool isSanctioned() const { return sanctioned; }
+        bool isHandShown() const { return hand_shown; }
+        bool isProtected() const { return protected_; }
+        bool mustCoup() const { return must_coup; }
     };
 
-    class Governor final : Player {};
+    class Governor final : public Player {
+    public:
+        std::string getRoleName() override { return "Governor"; }
+    };
 
-    class Spy final : Player {};
+    class Spy final : public Player {
+    public:
+        std::string getRoleName() override { return "Spy"; }
+    };
 
-    class Baron final : Player {};
+    class Baron final : public Player {
+    public:
+        std::string getRoleName() override { return "Baron"; }
+    };
 
-    class General final : Player {};
+    class General final : public Player {
+    public:
+        std::string getRoleName() override { return "General"; }
+    };
 
-    class Judge final : Player {};
+    class Judge final : public Player {
+    public:
+        std::string getRoleName() override { return "Judge"; }
+    };
 
-    class Merchant final : Player {
-        void startTurn() override;
+    class Merchant final : public Player {
+    public:
+        std::string getRoleName() override { return "Merchant"; }
+
+        void onTurnStart() override;
     };
 };

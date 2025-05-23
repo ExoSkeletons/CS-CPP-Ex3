@@ -7,62 +7,95 @@
 #include "GameActions.hpp"
 #include "Game.hpp"
 
+using std::string, std::cout, std::cin, std::endl;
+
 namespace game {
     Game::~Game() {
         for (const auto &player: players) delete player;
         delete current_action;
     }
 
-    void Game::setCurrentPlayer(const player::Player &player) const {
-        current_player = player;
+    void Game::selectCurrentPlayer(const int ci) {
+        this->ci = ci;
         if (current_action)
-            current_action->actor = current_player;
+            current_action->actor = getCurrentPlayer();
     }
 
-    void Game::advanceCurrentPlayer() {
+    auto Game::advanceCurrentPlayer() {
         ci++;
-        if (ci == players.size()) ci = 0;
-        setCurrentPlayer(*players.at(ci));
+        if (ci == players.size() || ci < 0) ci = 0;
+        selectCurrentPlayer(ci);
+        return getCurrentPlayer();
     }
 
-    void Game::setActionTarget(const player::Player &target) const {
+    void Game::setActionTarget(player::Player *target) {
         target_player = target;
         if (current_action)
-            current_action->target = target_player;
+            current_action->target = target;
     }
 
     void Game::setAction(Action *action, const bool keep_existing_args = false) {
         delete current_action;
         current_action = action;
         if (keep_existing_args) {
-            setCurrentPlayer(current_player);
+            selectCurrentPlayer(ci);
             setActionTarget(target_player);
         }
     }
 
-    void Game::playTurn() {
-        advanceCurrentPlayer();
+    auto Game::getWinner() const {
+        if (players.size() > 1) { throw illegal_action("No winner yet"); }
+        return players.at(0);
+    }
 
-        current_player.startTurn();
-        while (current_player.hasActions() && !isWin()) {
-            setAction(ui::term::pickAction(current_player, *this));
-            setActionTarget(ui::term::pickTarget(players));
+    void Game::playTurn() {
+        if (isWin()) {
+            ui::term::printWin(*getWinner());
+            return;
+        }
+
+        const auto current_player = advanceCurrentPlayer();
+
+        for (const auto &p: players)
+            p->onAnyTurnStart();
+        current_player->onTurnStart();
+
+        while (current_player->hasActions() && !isWin()) {
+            ui::term::printTurn(*this);
+
+            // choose action
+            if (current_player->mustCoup()) {
+                ui::term::printCoupForced(current_player);
+                setAction(new Coup(current_player, nullptr, *this));
+            } else
+                setAction(ui::term::chooseAction(current_player, *this));
+
+            // select target
+            if (current_action != nullptr && current_action->target == nullptr)
+                setActionTarget(ui::term::chooseTarget(players));
 
             if (const auto action = current_action) {
-                if (!action->canAct())
-                    continue;
+                try {
+                    // check if action is legal
+                    action->assertLegal();
 
-                if (ui::term::queryActionBlockers(players, &current_player, current_action)) {
-                    action->waste();
-                    // TODO notify blocked by blocker
-                } else action->act();
+                    // check if anyone can (and wants to) block this action
+                    // [fake real-time]
+                    if (const auto b = ui::term::queryActionBlockers(players, current_player, current_action)) {
+                        action->waste();
+                        ui::term::printActionBlocked(action, b);
+                    } else {
+                        // perform action
+                        action->act();
+                        ui::term::printAction(action);
+                    }
+                } catch (illegal_action why) { ui::term::printActionIllegal(action, why); }
             }
         }
-        current_player.endTurn();
 
-        if (isWin()) {
-            // TODO: show win
-        }
+        current_player->onTurnEnd();
+        for (const auto &p: players)
+            p->onAnyTurnEnd();
     }
 
     void Game::removePlayer(const player::Player &player) {
@@ -71,55 +104,139 @@ namespace game {
     }
 
     namespace ui::term {
-        bool confirmAction(const std::string &action, const std::string &desc = "") {
+        bool confirmAction(const string &action, const string &desc = "") {
             char confirm;
-            if (desc != "") std::cout << desc << std::endl;
-            std::cout << "Would you like to " << action << "? (Y/n)" << std::endl;
+            if (desc != "") cout << desc << endl;
+            cout << "Would you like to " << action << "? (Y/n)" << endl;
             do {
-                std::cin >> confirm;
+                cin >> confirm;
                 if (confirm == 'y' || confirm == 'Y') return true;
             } while (confirm != 'y' && confirm != 'Y' && confirm != 'n' && confirm != 'N');
             return false;
         }
 
-        player::Player &pickTarget(const PlayerList &players) {
-            int ti = 0;
-            std::cin >> ti;
-            return *players.at(ti);
+        void printTurn(const Game &game) {
+            cout << endl;
+
+            constexpr int pad = 3;
+            const auto pads = string(pad, ' ');
+            // calc col width (max strlen per col)
+            int cw_name = 10, cw_role = 7;
+            for (const auto p: game.getPlayers()) {
+                if (cw_name < p->getName().length()) cw_name = p->getName().length();
+                if (cw_role < p->getRoleName().length()) cw_role = p->getRoleName().length();
+            }
+            cw_name += 2;
+            cw_role += 2;
+            cout <<
+                    "   " << "Name" << string(cw_name - 4, ' ') << pads <<
+                    "Role" << string(cw_role - 4, ' ') << pads <<
+                    "Sc Ar" << " " << "Coins" <<
+                    endl;
+            cout <<
+                    "   " << string(cw_name, '-') << pads << string(cw_role, '-') <<
+                    pads << "-  - " << " " << "-----" <<
+                    endl;
+            for (const auto p: game.getPlayers()) {
+                const auto name = p->getName(), role = p->getRoleName();
+                const bool isPC = p == game.getCurrentPlayer();
+                isPC
+                    ? cout << p->getActions() << ">"
+                    : cout << "  ";
+                cout <<
+                        " " <<
+                        name << string(cw_name - name.length(), ' ') << pads <<
+                        role << string(cw_role - role.length(), ' ') << pads <<
+                        (p->isSanctioned() ? "x " : "  ") << " " <<
+                        (p->isArrested() ? "x " : "  ") << " ";
+                if (p->isHandShown() || isPC)
+                    cout <<
+                            p->getCoins();
+                cout << endl;
+            }
+            cout << endl;
         }
 
-        Action *pickAction(player::Player &player, Game &game) {
-            int act_i = 0;
-            std::cin >> act_i;
-            // ReSharper disable CppDFAMemoryLeak
+        void printWin(const player::Player &winner) { cout << winner.getName() << " wins!" << endl; }
+
+        player::Player *chooseTarget(const PlayerList &players) {
+            cout << "Pick Target: [0-" << players.size() - 1 << "]" << endl;
+            int ti = 0;
+            cin >> ti;
+            return players.at(ti);
+        }
+
+        Action *chooseAction(player::Player *player, Game &game) {
+            char act_i;
+            cout << "Choose action: [x:END   c:Coup   g:Gather t:Tax b:Bribe   s:Sanction a:Arrest   p:Peek o:Protect]"
+                    << endl;
+            cin >> act_i;
             switch (act_i) {
-                case 0: return new Coup(player, player, game);
+                case 'x': {
+                    player->endTurn();
+                    return nullptr;
+                }
 
-                case 1: return new Gather(player, game);
-                case 2: return new Tax(player, game);
-                case 3: return new Bribe(player, game);
+                case 'c': return new Coup(player, nullptr, game);
 
-                case 4: return new Sanction(player, player, game);
-                case 5: return new Arrest(player, player, game);
+                case 'g': return new Gather(player, game);
+                case 't': return new Tax(player, game);
+                case 'b': return new Bribe(player, game);
+
+                // nullptr target signals waiting to be filled later
+                case 's': return new Sanction(player, nullptr, game);
+                case 'a': return new Arrest(player, nullptr, game);
+
+                case 'p': return new Peek(player, nullptr, game);
+                case 'o': return new Protect(player, nullptr, game);
 
                 default: return nullptr;
             }
         }
 
         player::Player *queryActionBlockers(
-            const PlayerList &players, const player::Player *current_player, const Action *current_action
-        ) {
-            if (current_action)
+            const PlayerList &players, const player::Player *actor, const Action *action) {
+            if (action)
                 for (int pi = 0; pi < players.size(); pi++) {
-                    if (players.at(pi) == current_player) continue;
-                    if (const auto blocker = players.at(pi); current_action->blockedBy(*blocker))
+                    if (players.at(pi) == action->actor) continue;
+                    if (const auto blocker = players.at(pi); action->blockedBy(*blocker)) {
+                        if (players.at(pi) == action->target)
+                            return action->target;
+
                         if (confirmAction(
-                            std::format("Player {} can block this action.", blocker->getName()),
-                            std::format("Block {}", current_player->getName())
+                            std::format("Block {}", actor->getName()),
+                            std::format("Player {} can block {}.", blocker->getName(), action->name)
                         ))
                             return blocker;
+                    }
                 }
             return nullptr;
+        }
+
+        void printAction(const Game::Action *action) {
+            cout << action->actor->getName() << " used " << action->name;
+            if (action->target != action->actor)
+                cout << " on " << action->target->getName();
+            cout << endl;
+        }
+
+        void printActionIllegal(const Game::Action *action, const illegal_action &why) { cout << why.what() << endl; }
+
+        void printActionBlocked(const Game::Action *action, const player::Player *blocker) {
+            cout <<
+                    action->name <<
+                    " by " << action->actor->getName() <<
+                    " on " << action->target->getName() <<
+                    " ";
+            blocker == action->target
+                ? cout << "Failed"
+                : cout << "was blocked by" << blocker->getName();
+            cout << "!";
+            cout << endl;
+        }
+
+        void printCoupForced(const player::Player *actor) {
+            std::cout << actor->getName() << " is forced to use coup." << std::endl;
         }
     }
 } // game

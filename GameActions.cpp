@@ -5,54 +5,81 @@
 #include "GameActions.hpp"
 #include "typetools.hpp"
 
+using namespace player;
+
 namespace game {
-    bool Action::canAct() const { return actor.hasActions() && actor.getCoins() >= coinCost(); }
-    void Action::pay() const { actor.incCoins(-coinCost()); }
+    void Action::assertLegal() const {
+        if (!actor->hasActions()) throw illegal_action("No actions left");
+        if (actor->getCoins() < coinCost()) throw illegal_action("Not enough coins for action");
+    }
 
-    Gather::Gather(player::Player &actor, Game &game): Action("Gather", actor, actor, game) {}
-    void Gather::action() const { actor.incCoins(1); }
-    bool Gather::canAct() const { return Action::canAct() && !actor.isSanctioned(); }
+    void Action::pay() const {
+        actor->incCoins(-coinCost());
+        actor->act();
+    }
 
-    Bribe::Bribe(player::Player &actor, Game &game): Action("Bribe", actor, actor, game) {}
+    IncCoins::IncCoins(const std::string &name, Player *player, Game &game): Action(name, player, player, game) {}
+    void IncCoins::action() const { actor->incCoins(coinAmount()); }
+    int IncCoins::coinAmount() const { return 1; }
+
+    void IncCoins::assertLegal() const {
+        if (actor->isSanctioned()) throw action_unavailable("you're sanctioned", true);
+        Action::assertLegal();
+    }
+
+    int Tax::coinAmount() const { return instanceof<Governor>(actor) ? 2 : 3; }
+
     int Bribe::coinCost() const { return 4; }
-    void Bribe::action() const { actor.incActions(2); }
-    bool Bribe::blockedBy(player::Player &blocker) const { return instanceof<player::Judge>(&blocker); }
-
-    StealCoins::StealCoins(const std::string &_name, player::Player &thief, player::Player &victim, Game &game)
-        : Action(_name, thief, victim, game) {}
+    void Bribe::action() const { actor->incActions(2); }
+    bool Bribe::blockedBy(Player &blocker) const { return instanceof<Judge>(&blocker); }
 
     int StealCoins::stealAmount() const { return 1; }
     bool StealCoins::transfer() const { return true; }
 
-    bool StealCoins::canAct() const {
-        return Action::canAct() && !target.isArrested() && !target.getCoins() > stealAmount();
+    void StealCoins::assertLegal() const {
+        if (target->isArrested())
+            throw action_unavailable("target is already arrested", true);
+        if (target->getCoins() < stealAmount())
+            throw action_unavailable("target doesn't have enough to steal");
+        Action::assertLegal();
     }
 
     void StealCoins::action() const {
-        target.arrest();
+        target->arrest();
         const int steal = stealAmount();
-        target.incCoins(-steal);
-        if (transfer()) actor.incActions(steal);
+        target->incCoins(-steal);
+        if (transfer()) actor->incActions(steal);
     }
 
-    Arrest::Arrest(player::Player &thief, player::Player &victim, Game &game)
-        : StealCoins("Arrest", thief, victim, game) {}
 
-    int Arrest::stealAmount() const {
-        return StealCoins::stealAmount() * (instanceof<player::Merchant>(&target) ? 2 : 1);
+    int Arrest::stealAmount() const { return StealCoins::stealAmount() * (instanceof<Merchant>(target) ? 2 : 1); }
+    bool Arrest::transfer() const { return !instanceof<Merchant>(target); }
+
+    void Sanction::action() const { target->sanction(); }
+    int Sanction::coinCost() const { return instanceof<Judge>(target) ? 4 : 3; }
+
+    void Peek::assertLegal() const {
+        if (!instanceof<Spy>(actor)) throw action_unavailable("", true);
+        Action::assertLegal();
     }
 
-    bool Arrest::transfer() const { return !instanceof<player::Merchant>(&target); }
+    void Peek::action() const {
+        target->reveal();
+        actor->incActions(1);
+    }
 
-    Sanction::Sanction(player::Player &actor, player::Player &target, Game &game)
-        : Action("Sanction", actor, target, game) {}
+    void Protect::assertLegal() const {
+        if (!instanceof<Baron>(actor)) throw action_unavailable("", true);
+        Action::assertLegal();
+    }
 
-    void Sanction::action() const { target.sanction(); }
+    void Protect::action() const { target->protect(); }
 
-    Coup::Coup(player::Player &actor, player::Player &target, Game &game): Action("Coup", actor, target, game) {}
-    void Coup::action() const { game.removePlayer(target); }
-
-    Tax::Tax(player::Player &actor, Game &game): Action("Tax", actor, actor, game) {}
-    bool Tax::canAct() const { return Action::canAct() && !actor.isSanctioned(); }
-    void Tax::action() const { actor.incCoins(instanceof<player::Governor>(&actor) ? 2 : 3); }
+    void Coup::pay() const {
+        Action::pay();
+        actor->clearCoupReq();
+    }
+    void Coup::action() const { game.removePlayer(*target); }
+    int Coup::coinCost() const { return 7; }
+    bool Coup::blockedBy(Player &blocker) const { return target == &blocker && target->isProtected(); }
 } // game

@@ -10,11 +10,22 @@
 #include "Player.hpp"
 
 namespace game {
-    class illegal_action final : public std::logic_error {
+    class illegal_action : public std::logic_error {
     public:
         explicit illegal_action(const std::string &__arg) : logic_error(__arg) {}
 
         explicit illegal_action(const char *string) : logic_error(string) {}
+    };
+
+    class action_unavailable final : public illegal_action {
+    public:
+        explicit action_unavailable(const char *reason = "", const bool personal = false)
+            : illegal_action(
+                std::string(personal
+                                ? "You can't use use this action"
+                                : "Action unavailable")
+                + std::string(reason != "" ? ", " : "") + reason
+            ) {}
     };
 
     typedef std::vector<player::Player *> PlayerList;
@@ -27,9 +38,8 @@ namespace game {
     private:
         PlayerList players;
         int ci = -1;
-        player::Player &current_player = *players.at(0);
-        player::Player &target_player = current_player;
 
+        player::Player *target_player = nullptr;
         Action *current_action = nullptr;
 
     public:
@@ -37,33 +47,51 @@ namespace game {
 
         ~Game();
 
-        void setCurrentPlayer(const player::Player &player) const;
+        void selectCurrentPlayer(int ci);
 
-        void advanceCurrentPlayer();
+        auto getCurrentPlayer() const { return players.at(ci); }
 
-        void setActionTarget(const player::Player &target) const;
+        auto advanceCurrentPlayer();
+
+        void setActionTarget(player::Player *target);
 
         void setAction(Action *action, bool keep_existing_args);
 
+        auto getWinner() const;
+
         void playTurn();
 
-        bool isWin() const { return players.size() <= 1; }
+        bool isWin() const { return players.size() == 1; }
 
         void addPlayer(player::Player *player) { players.push_back(player); }
 
         void removePlayer(const player::Player &player);
+
+        auto getPlayers() const { return players; }
     };
 
     namespace ui::term {
         static bool confirmAction();
 
-        static player::Player &pickTarget(const PlayerList &players);
+        void printTurn(const Game &game);
 
-        static Game::Action *pickAction(player::Player &, Game &game);
+        void printWin(const player::Player &winner);
+
+        static player::Player *chooseTarget(const PlayerList &players);
+
+        static Game::Action *chooseAction(player::Player *, Game &game);
 
         player::Player *queryActionBlockers(
-            const PlayerList &players, const player::Player *current_player,
-            const Game::Action *current_action
+            const PlayerList &players, const player::Player *actor,
+            const Game::Action *action
         );
+
+        void printAction(const Game::Action *action);
+
+        void printActionIllegal(const Game::Action *action, const illegal_action &why);
+
+        void printActionBlocked(const Game::Action *action, const player::Player *blocker);
+
+        void printCoupForced(const player::Player *actor);
     }
 } // game
