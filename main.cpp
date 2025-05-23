@@ -4,7 +4,16 @@
 // TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 int main() {
+    game::Game game;
 
+    game.addPlayer((new player::Merchant())->setName("Whitney"));
+    game.addPlayer((new player::Governor())->setName("Marcy"));
+    game.addPlayer((new player::Spy())->setName("Frank"));
+    game.addPlayer((new player::Judge())->setName("Bill"));
+    game.addPlayer((new player::Baron())->setName("Melvin"));
+
+    while (!game.isWin())
+        game.playTurn();
 
     return 0;
 }
