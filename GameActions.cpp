@@ -79,6 +79,8 @@ namespace game {
         Action::pay();
         actor->clearCoupReq();
     }
+
+    void Coup::assertLegal() const { if (actor == target) throw action_unavailable("cannot coup self"); }
     void Coup::action() const { game.removePlayer(target); }
     int Coup::coinCost() const { return 7; }
     bool Coup::blockedBy(const PlayerRef blocker) const { return target == blocker && target->isProtected(); }

@@ -47,6 +47,8 @@ namespace game {
     struct Coup final : Action {
         Coup(const PlayerRef actor, const PlayerRef target, Game &game): Action("Coup", actor, target, game) {}
 
+        void assertLegal() const override;
+
         void pay() const override;
 
         void action() const override;
