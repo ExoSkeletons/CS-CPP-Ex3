@@ -68,7 +68,7 @@ namespace game {
 
         void addPlayer(const PlayerRef player) { players.push_back(player); }
 
-        void removePlayer(const PlayerRef player)  {
+        void removePlayer(const PlayerRef player) {
             if (removeValue<PlayerRef>(players, player))
                 delete player;
             if (player == target_player) target_player = nullptr;
@@ -86,11 +86,12 @@ namespace game {
 
         PlayerRef chooseTarget(const PlayerList &players);
 
-        Game::Action *chooseAction(PlayerRef , Game &game);
+        Game::Action *chooseAction(PlayerRef, Game &game);
 
         PlayerRef queryActionBlockers(
             const PlayerList &players, PlayerRef actor,
-            const Game::Action *action
+            const Game::Action *action,
+            int &block_cost
         );
 
         void printAction(const Game::Action *action);

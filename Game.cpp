@@ -75,9 +75,13 @@ namespace game {
 
                     // check if anyone can (and wants to) block this action
                     // [fake real-time]
-                    if (const auto b = ui::term::queryActionBlockers(players, current_player, current_action)) {
-                        ui::term::printActionBlocked(action, b);
+                    int blocked_cost = 0;
+                    if (const auto blocking =
+                            ui::term::queryActionBlockers(players, current_player, current_action, blocked_cost)
+                    ) {
+                        ui::term::printActionBlocked(action, blocking);
                         // block action (waste coins)
+                        blocking->incCoins(-blocked_cost);
                         action->waste();
                     } else {
                         ui::term::printAction(action);
@@ -164,7 +168,8 @@ namespace game {
 
         Action *chooseAction(const PlayerRef player, Game &game) {
             char act_i;
-            cout << "Choose action: [x:END   c:Coup   g:Gather t:Tax b:Bribe   s:Sanction a:Arrest   p:Peek o:Protect]"
+            cout <<
+                    "Choose action: [x:END   c:Coup   g:Gather t:Tax i:Invest    b:Bribe   s:Sanction a:Arrest   p:Peek]"
                     << endl;
             cin >> act_i;
             switch (act_i) {
@@ -177,6 +182,8 @@ namespace game {
 
                 case 'g': return new Gather(player, game);
                 case 't': return new Tax(player, game);
+                case 'i': return new Invest(player, game);
+
                 case 'b': return new Bribe(player, game);
 
                 // nullptr target signals waiting to be filled later
@@ -184,24 +191,26 @@ namespace game {
                 case 'a': return new Arrest(player, nullptr, game);
 
                 case 'p': return new Peek(player, nullptr, game);
-                case 'o': return new Protect(player, nullptr, game);
 
                 default: return nullptr;
             }
         }
 
         PlayerRef queryActionBlockers(
-            const PlayerList &players, const PlayerRef actor, const Action *action) {
+            const PlayerList &players, const PlayerRef actor, const Action *action, int &block_cost) {
             if (action)
                 for (size_t pi = 0; pi < players.size(); pi++) {
                     if (players.at(pi) == action->actor) continue;
-                    if (const auto blocker = players.at(pi); action->blockedBy(blocker)) {
+                    if (const auto blocker = players.at(pi); action->blockedBy(blocker, block_cost)) {
                         if (players.at(pi) == action->target)
                             return action->target;
 
                         if (confirmAction(
                             std::format("Block {}", actor->getName()),
-                            std::format("Player {} can block {}.", blocker->getName(), action->name)
+                            std::format(
+                                "Player {} can block {} for {} coins.",
+                                blocker->getName(), action->name, block_cost
+                            )
                         ))
                             return blocker;
                     }

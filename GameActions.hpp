@@ -3,6 +3,7 @@
 //
 
 #pragma once
+
 #include <string>
 
 #include "Game.hpp"
@@ -23,7 +24,11 @@ namespace game {
         virtual ~Action() = default; // assumes
 
         virtual int coinCost() const { return 0; }
-        virtual bool blockedBy(const PlayerRef blocker) const { return false; }
+
+        virtual bool blockedBy(const PlayerRef blocker, int &block_cost) const {
+            block_cost = 0;
+            return false;
+        }
 
         virtual void assertLegal() const;
 
@@ -44,7 +49,8 @@ namespace game {
 
 
     struct Coup final : Action {
-        Coup(const PlayerRef actor, const PlayerRef target, Game &game): Action("Coup", actor, target, game) {}
+        Coup(const PlayerRef actor, const PlayerRef target, Game &game): Action(
+            "Coup", actor, target, game) {}
 
         void assertLegal() const override;
 
@@ -54,7 +60,7 @@ namespace game {
 
         int coinCost() const override;
 
-        bool blockedBy(PlayerRef blocker) const override;
+        bool blockedBy(PlayerRef blocker, int &block_cost) const override;
     };
 
 
@@ -92,6 +98,17 @@ namespace game {
         int coinAmount() const override;
     };
 
+    struct Invest final : Action {
+        Invest(const PlayerRef actor, Game &game) : Action(
+            "Invest", actor, actor, game) {}
+
+        int coinCost() const override;
+
+        void assertLegal() const override;
+
+        void action() const override;
+    };
+
 
     struct Bribe final : Action {
         Bribe(const PlayerRef actor, Game &game): Action("Bribe", actor, actor, game) {}
@@ -100,21 +117,21 @@ namespace game {
 
         void action() const override;
 
-        bool blockedBy(PlayerRef blocker) const override;
+        bool blockedBy(PlayerRef blocker, int &block_cost) const override;
     };
 
     struct Arrest final : StealCoins {
-        Arrest(const PlayerRef thief, const PlayerRef victim, Game &game) : StealCoins("Arrest", thief, victim, game) {}
+        Arrest(const PlayerRef thief, const PlayerRef victim, Game &game) : StealCoins(
+            "Arrest", thief, victim, game) {}
 
         int stealAmount() const override;
 
         bool transfer() const override;
-
-        bool blockedBy(const PlayerRef blocker) const override { return target == blocker && target->isProtected(); }
     };
 
     struct Sanction final : Action {
-        Sanction(const PlayerRef actor, const PlayerRef target, Game &game) : Action("Sanction", actor, target, game) {}
+        Sanction(const PlayerRef actor, const PlayerRef target, Game &game) : Action(
+            "Sanction", actor, target, game) {}
 
         void action() const override;
 
@@ -123,17 +140,8 @@ namespace game {
 
 
     struct Peek final : Action {
-        Peek(const PlayerRef actor, const PlayerRef target, Game &game) : Action("Peek", actor, target, game) {}
-
-        void assertLegal() const override;
-
-        void action() const override;
-    };
-
-    struct Protect final : Action {
-        Protect(const PlayerRef actor, const PlayerRef target, Game &game): Action("Protect", actor, target, game) {}
-
-        int coinCost() const override { return 5; }
+        Peek(const PlayerRef actor, const PlayerRef target, Game &game) : Action(
+            "Peek", actor, target, game) {}
 
         void assertLegal() const override;
 

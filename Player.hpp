@@ -21,7 +21,6 @@ namespace player {
                 arrested = false,
                 sanctioned = false,
                 hand_shown = false,
-                protected_ = false,
 
                 must_coup = false;
 
@@ -63,21 +62,20 @@ namespace player {
 
         virtual void onAnyTurnEnd();
 
-        void arrest() { arrested = true; }
-        void sanction() { sanctioned = true; }
-        void reveal() { hand_shown = true; }
-        void protect() { protected_ = true; }
+        virtual void arrest() { arrested = true; }
+        virtual void sanction() { sanctioned = true; }
+        virtual void reveal() { hand_shown = true; }
 
         void clearCoupReq() { must_coup = false; }
 
         bool isArrested() const { return arrested; }
         bool isSanctioned() const { return sanctioned; }
         bool isHandShown() const { return hand_shown; }
-        bool isProtected() const { return protected_; }
+
         bool mustCoup() const { return must_coup; }
     };
 
-    typedef Player* PlayerRef;
+    typedef Player *PlayerRef;
 
     class Governor final : public Player {
     public:
