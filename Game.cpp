@@ -24,7 +24,7 @@ namespace game {
 
     auto Game::advanceCurrentPlayer() {
         ci++;
-        if (ci == players.size() || ci < 0) ci = 0;
+        if (ci >= players.size()) ci = 0;
         selectCurrentPlayer(ci);
         return getCurrentPlayer();
     }
@@ -50,12 +50,7 @@ namespace game {
     }
 
     void Game::playTurn() {
-        if (isWin()) {
-            ui::term::printWin(*getWinner());
-            return;
-        }
-
-        const auto current_player = advanceCurrentPlayer();
+        const auto current_player = getCurrentPlayer();
 
         for (const auto &p: players)
             p->onAnyTurnStart();
@@ -97,6 +92,13 @@ namespace game {
         current_player->onTurnEnd();
         for (const auto &p: players)
             p->onAnyTurnEnd();
+            
+        advanceCurrentPlayer();
+        
+        if (isWin()) {
+            ui::term::printWin(*getWinner());
+            return;
+        }
     }
 
     void Game::removePlayer(const player::Player &player) {

@@ -37,7 +37,7 @@ namespace game {
 
     private:
         PlayerList players;
-        int ci = -1;
+        size_t ci = 0;
 
         player::Player *target_player = nullptr;
         Action *current_action = nullptr;
