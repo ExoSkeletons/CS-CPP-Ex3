@@ -15,7 +15,7 @@ namespace player {
     class Player {
         std::string name = "Unnamed Player";
 
-        int coins = 10, actions = 0;
+        int coins = 0, actions = 0;
 
         bool
                 arrested = false,
