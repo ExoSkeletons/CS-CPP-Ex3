@@ -1,4 +1,3 @@
-
 #include "Game.hpp"
 // TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
@@ -12,8 +11,10 @@ int main() {
     game.addPlayer((new Baron())->setName("Melvin"));
     game.addPlayer((new Governor())->setName("Peter"));
 
-    while (!game.isWin())
+    while (!game.isWin()) {
         game.playTurn();
+        game.advanceTurn();
+    }
 
     return 0;
 }

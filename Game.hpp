@@ -54,7 +54,7 @@ namespace game {
 
         auto getCurrentPlayer() const { return players.at(ci); }
 
-        void advanceCurrentPlayer();
+        void advanceTurn();
 
         void setActionTarget(PlayerRef target);
 

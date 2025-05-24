@@ -21,7 +21,7 @@ namespace game {
             current_action->actor = getCurrentPlayer();
     }
 
-    void Game::advanceCurrentPlayer() {
+    void Game::advanceTurn() {
         ci++;
         if (ci >= players.size()) ci = 0;
         selectCurrentPlayer(ci);
@@ -97,8 +97,6 @@ namespace game {
             p->onAnyTurnEnd();
 
         if (isWin()) ui::term::printWin(getWinner());
-
-        advanceCurrentPlayer();
     }
 
     namespace ui::term {
