@@ -10,6 +10,7 @@ int main() {
     game.addPlayer((new Spy())->setName("Frank"));
     game.addPlayer((new Judge())->setName("Bill"));
     game.addPlayer((new Baron())->setName("Melvin"));
+    game.addPlayer((new Governor())->setName("Peter"));
 
     while (!game.isWin())
         game.playTurn();
