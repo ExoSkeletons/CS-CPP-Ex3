@@ -71,6 +71,7 @@ namespace game {
         void removePlayer(const PlayerRef player)  {
             if (removeValue<PlayerRef>(players, player))
                 delete player;
+            if (player == target_player) target_player = nullptr;
         }
 
         auto getPlayers() const { return players; }
