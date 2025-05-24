@@ -29,7 +29,6 @@ namespace game {
 
         void act() const {
             pay();
-            actor->act();
             action();
         }
 
