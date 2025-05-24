@@ -25,7 +25,7 @@ namespace game {
         Action::assertLegal();
     }
 
-    int Tax::coinAmount() const { return instanceof<Governor>(actor) ? 2 : 3; }
+    int Tax::coinAmount() const { return instanceof<Governor>(actor) ? 3 : 2; }
 
     int Bribe::coinCost() const { return 4; }
     void Bribe::action() const { actor->incActions(2); }
