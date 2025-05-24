@@ -19,12 +19,12 @@ namespace game {
 
     class action_unavailable final : public illegal_action {
     public:
-        explicit action_unavailable(const char *reason = "", const bool personal = false)
+        explicit action_unavailable(const std::string reason = std::string(""), const bool personal = false)
             : illegal_action(
                 std::string(personal
                                 ? "You can't use use this action"
                                 : "Action unavailable")
-                + std::string(reason != "" ? ", " : "") + reason
+                + std::string(!reason.empty() ? ", " : "") + reason
             ) {}
     };
 
@@ -71,7 +71,7 @@ namespace game {
     };
 
     namespace ui::term {
-        static bool confirmAction();
+        bool confirmAction(const std::string &action, const std::string &desc);
 
         void printTurn(const Game &game);
 

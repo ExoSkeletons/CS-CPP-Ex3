@@ -6,6 +6,7 @@
 
 #include "GameActions.hpp"
 #include "Game.hpp"
+#include <algorithm>
 
 using std::string, std::cout, std::cin, std::endl;
 
@@ -89,7 +90,7 @@ namespace game {
                         action->act();
                         ui::term::printAction(action);
                     }
-                } catch (illegal_action why) { ui::term::printActionIllegal(action, why); }
+                } catch (illegal_action &why) { ui::term::printActionIllegal(action, why); }
             }
         }
 
@@ -121,7 +122,7 @@ namespace game {
             constexpr int pad = 3;
             const auto pads = string(pad, ' ');
             // calc col width (max strlen per col)
-            int cw_name = 10, cw_role = 7;
+            size_t cw_name = 10, cw_role = 7;
             for (const auto p: game.getPlayers()) {
                 if (cw_name < p->getName().length()) cw_name = p->getName().length();
                 if (cw_role < p->getRoleName().length()) cw_role = p->getRoleName().length();
@@ -197,7 +198,7 @@ namespace game {
         player::Player *queryActionBlockers(
             const PlayerList &players, const player::Player *actor, const Action *action) {
             if (action)
-                for (int pi = 0; pi < players.size(); pi++) {
+                for (size_t pi = 0; pi < players.size(); pi++) {
                     if (players.at(pi) == action->actor) continue;
                     if (const auto blocker = players.at(pi); action->blockedBy(*blocker)) {
                         if (players.at(pi) == action->target)
