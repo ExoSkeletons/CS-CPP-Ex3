@@ -60,8 +60,8 @@ namespace game {
     int Sanction::coinCost() const { return instanceof<Judge>(target) ? 4 : 3; }
 
     int Invest::coinCost() const { return 3; }
+    int Invest::coinAmount() const { return 6; }
     void Invest::assertLegal() const { if (!instanceof<Baron>(actor)) throw action_unavailable("", true); }
-    void Invest::action() const { actor->incCoins(6); }
 
     void Peek::assertLegal() const {
         if (!instanceof<Spy>(actor)) throw action_unavailable("", true);

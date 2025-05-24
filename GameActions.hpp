@@ -98,15 +98,14 @@ namespace game {
         int coinAmount() const override;
     };
 
-    struct Invest final : Action {
-        Invest(const PlayerRef actor, Game &game) : Action(
-            "Invest", actor, actor, game) {}
+    struct Invest final : IncCoins {
+        Invest(const PlayerRef actor, Game &game) : IncCoins("Invest", actor, game) {}
 
         int coinCost() const override;
 
-        void assertLegal() const override;
+        int coinAmount() const override;
 
-        void action() const override;
+        void assertLegal() const override;
     };
 
 
