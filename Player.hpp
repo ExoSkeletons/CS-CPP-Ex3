@@ -15,7 +15,7 @@ namespace player {
     class Player {
         std::string name = "Unnamed Player";
 
-        int coins = 3, actions = 1;
+        int coins = 10, actions = 0;
 
         bool
                 arrested = false,
@@ -46,11 +46,11 @@ namespace player {
 
         int getActions() const { return actions; }
 
-        bool hasActions() const { return actions > 0; }
+        bool hasActions() const { return getActions() > 0; }
 
         void incActions(const int actions) { this->actions += actions; }
 
-        void act();
+        void act() { actions--; }
 
         void endTurn() { actions = 0; }
 
@@ -58,7 +58,7 @@ namespace player {
 
         virtual void onTurnEnd();
 
-        virtual void onAnyTurnStart() {}
+        virtual void onAnyTurnStart();
 
         virtual void onAnyTurnEnd();
 

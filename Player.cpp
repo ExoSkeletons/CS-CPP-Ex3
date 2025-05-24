@@ -10,8 +10,6 @@ namespace player {
         return this;
     }
 
-    void Player::act() { actions--; }
-
     void Player::onTurnStart() {
         actions = 1;
         if (getCoins() >= 10)
@@ -19,7 +17,11 @@ namespace player {
     }
 
     void Player::onTurnEnd() { sanctioned = arrested = false; }
+    void Player::onAnyTurnStart() { hand_shown = false; }
     void Player::onAnyTurnEnd() { hand_shown = false; }
 
-    void Merchant::onTurnStart() { if (getCoins() >= 3) incCoins(1); }
+    void Merchant::onTurnStart() {
+        Player::onTurnStart();
+        if (getCoins() >= 3) incCoins(1);
+    }
 }

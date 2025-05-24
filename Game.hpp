@@ -19,7 +19,7 @@ namespace game {
 
     class action_unavailable final : public illegal_action {
     public:
-        explicit action_unavailable(const std::string reason = std::string(""), const bool personal = false)
+        explicit action_unavailable(const std::string &reason = std::string(""), const bool personal = false)
             : illegal_action(
                 std::string(personal
                                 ? "You can't use use this action"
@@ -51,7 +51,7 @@ namespace game {
 
         auto getCurrentPlayer() const { return players.at(ci); }
 
-        auto advanceCurrentPlayer();
+        void advanceCurrentPlayer();
 
         void setActionTarget(player::Player *target);
 
@@ -61,7 +61,7 @@ namespace game {
 
         void playTurn();
 
-        bool isWin() const { return players.size() == 1; }
+        bool isWin() const { return players.size() <= 1; }
 
         void addPlayer(player::Player *player) { players.push_back(player); }
 

@@ -22,11 +22,10 @@ namespace game {
             current_action->actor = getCurrentPlayer();
     }
 
-    auto Game::advanceCurrentPlayer() {
+    void Game::advanceCurrentPlayer() {
         ci++;
         if (ci >= players.size()) ci = 0;
         selectCurrentPlayer(ci);
-        return getCurrentPlayer();
     }
 
     void Game::setActionTarget(player::Player *target) {
@@ -92,13 +91,10 @@ namespace game {
         current_player->onTurnEnd();
         for (const auto &p: players)
             p->onAnyTurnEnd();
-            
+
+        if (isWin()) ui::term::printWin(*getWinner());
+
         advanceCurrentPlayer();
-        
-        if (isWin()) {
-            ui::term::printWin(*getWinner());
-            return;
-        }
     }
 
     void Game::removePlayer(const player::Player &player) {
@@ -140,9 +136,11 @@ namespace game {
                     "   " << string(cw_name, '-') << pads << string(cw_role, '-') <<
                     pads << "-  - " << " " << "-----" <<
                     endl;
+
+            const auto current_player = game.getCurrentPlayer();
             for (const auto p: game.getPlayers()) {
                 const auto name = p->getName(), role = p->getRoleName();
-                const bool isPC = p == game.getCurrentPlayer();
+                const bool isPC = p == current_player;
                 isPC
                     ? cout << p->getActions() << ">"
                     : cout << "  ";
