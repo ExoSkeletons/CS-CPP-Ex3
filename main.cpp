@@ -1,4 +1,3 @@
-#include <iostream>
 
 #include "Game.hpp"
 // TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
@@ -6,11 +5,11 @@
 int main() {
     game::Game game;
 
-    game.addPlayer((new player::Merchant())->setName("Whitney"));
-    game.addPlayer((new player::Governor())->setName("Marcy"));
-    game.addPlayer((new player::Spy())->setName("Frank"));
-    game.addPlayer((new player::Judge())->setName("Bill"));
-    game.addPlayer((new player::Baron())->setName("Melvin"));
+    game.addPlayer((new Merchant())->setName("Whitney"));
+    game.addPlayer((new Baron())->setName("Marcy"));
+    game.addPlayer((new Spy())->setName("Frank"));
+    game.addPlayer((new Judge())->setName("Bill"));
+    game.addPlayer((new Baron())->setName("Melvin"));
 
     while (!game.isWin())
         game.playTurn();
