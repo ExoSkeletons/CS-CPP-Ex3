@@ -22,6 +22,7 @@ namespace player {
                 sanctioned = false,
                 hand_shown = false,
                 protected_ = false,
+
                 must_coup = false;
 
     protected:
@@ -66,6 +67,7 @@ namespace player {
         void sanction() { sanctioned = true; }
         void reveal() { hand_shown = true; }
         void protect() { protected_ = true; }
+
         void clearCoupReq() { must_coup = false; }
 
         bool isArrested() const { return arrested; }
@@ -74,6 +76,8 @@ namespace player {
         bool isProtected() const { return protected_; }
         bool mustCoup() const { return must_coup; }
     };
+
+    typedef Player* PlayerRef;
 
     class Governor final : public Player {
     public:

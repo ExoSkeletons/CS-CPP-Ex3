@@ -11,19 +11,19 @@
 namespace game {
     struct Game::Action {
         const std::string name;
-        player::Player *actor, *target;
+        PlayerRef actor, target;
         Game &game;
 
         explicit Action(
             const std::string &_name,
-            player::Player *actor, player::Player *target,
+            const PlayerRef actor, const PlayerRef target,
             Game &game
         ) : name(_name), actor(actor), target(target), game(game) {}
 
         virtual ~Action() = default; // assumes
 
         virtual int coinCost() const { return 0; }
-        virtual bool blockedBy(player::Player &blocker) const { return false; }
+        virtual bool blockedBy(const PlayerRef blocker) const { return false; }
 
         virtual void assertLegal() const;
 
@@ -45,7 +45,7 @@ namespace game {
 
 
     struct Coup final : Action {
-        Coup(player::Player *actor, player::Player *target, Game &game): Action("Coup", actor, target, game) {}
+        Coup(const PlayerRef actor, const PlayerRef target, Game &game): Action("Coup", actor, target, game) {}
 
         void pay() const override;
 
@@ -53,12 +53,12 @@ namespace game {
 
         int coinCost() const override;
 
-        bool blockedBy(player::Player &blocker) const override;
+        bool blockedBy(PlayerRef blocker) const override;
     };
 
 
     struct IncCoins : Action {
-        IncCoins(const std::string &name, player::Player *player, Game &game);
+        IncCoins(const std::string &name, PlayerRef player, Game &game);
 
         void action() const override;
 
@@ -68,7 +68,7 @@ namespace game {
     };
 
     struct StealCoins : Action {
-        StealCoins(const std::string &name, player::Player *thief, player::Player *victim, Game &game)
+        StealCoins(const std::string &name, const PlayerRef thief, const PlayerRef victim, Game &game)
             : Action(name, thief, victim, game) {}
 
         virtual int stealAmount() const;
@@ -82,38 +82,38 @@ namespace game {
 
 
     struct Gather final : IncCoins {
-        Gather(player::Player *actor, Game &game): IncCoins("Gather", actor, game) {}
+        Gather(const PlayerRef actor, Game &game): IncCoins("Gather", actor, game) {}
     };
 
     struct Tax final : IncCoins {
-        Tax(player::Player *player, Game &game): IncCoins("Tax", player, game) {}
+        Tax(const PlayerRef player, Game &game): IncCoins("Tax", player, game) {}
 
         int coinAmount() const override;
     };
 
 
     struct Bribe final : Action {
-        Bribe(player::Player *actor, Game &game): Action("Bribe", actor, actor, game) {}
+        Bribe(const PlayerRef actor, Game &game): Action("Bribe", actor, actor, game) {}
 
         int coinCost() const override;
 
         void action() const override;
 
-        bool blockedBy(player::Player &blocker) const override;
+        bool blockedBy(PlayerRef blocker) const override;
     };
 
     struct Arrest final : StealCoins {
-        Arrest(player::Player *thief, player::Player *victim, Game &game) : StealCoins("Arrest", thief, victim, game) {}
+        Arrest(const PlayerRef thief, const PlayerRef victim, Game &game) : StealCoins("Arrest", thief, victim, game) {}
 
         int stealAmount() const override;
 
         bool transfer() const override;
 
-        bool blockedBy(player::Player &blocker) const override { return target == &blocker && target->isProtected(); }
+        bool blockedBy(const PlayerRef blocker) const override { return target == blocker && target->isProtected(); }
     };
 
     struct Sanction final : Action {
-        Sanction(player::Player *actor, player::Player *target, Game &game) : Action("Sanction", actor, target, game) {}
+        Sanction(const PlayerRef actor, const PlayerRef target, Game &game) : Action("Sanction", actor, target, game) {}
 
         void action() const override;
 
@@ -122,7 +122,7 @@ namespace game {
 
 
     struct Peek final : Action {
-        Peek(player::Player *actor, player::Player *target, Game &game) : Action("Peek", actor, target, game) {}
+        Peek(const PlayerRef actor, const PlayerRef target, Game &game) : Action("Peek", actor, target, game) {}
 
         void assertLegal() const override;
 
@@ -130,7 +130,7 @@ namespace game {
     };
 
     struct Protect final : Action {
-        Protect(player::Player *actor, player::Player *target, Game &game): Action("Protect", actor, target, game) {}
+        Protect(const PlayerRef actor, const PlayerRef target, Game &game): Action("Protect", actor, target, game) {}
 
         int coinCost() const override { return 5; }
 

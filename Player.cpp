@@ -5,7 +5,7 @@
 #include "Player.hpp"
 
 namespace player {
-    Player *Player::setName(std::string const &name) {
+    PlayerRef Player::setName(std::string const &name) {
         if (!name.empty()) this->name = name;
         return this;
     }

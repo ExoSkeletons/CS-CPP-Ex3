@@ -6,7 +6,6 @@
 
 #include "GameActions.hpp"
 #include "Game.hpp"
-#include <algorithm>
 
 using std::string, std::cout, std::cin, std::endl;
 
@@ -28,7 +27,7 @@ namespace game {
         selectCurrentPlayer(ci);
     }
 
-    void Game::setActionTarget(player::Player *target) {
+    void Game::setActionTarget(const PlayerRef target) {
         target_player = target;
         if (current_action)
             current_action->target = target;
@@ -77,12 +76,13 @@ namespace game {
                     // check if anyone can (and wants to) block this action
                     // [fake real-time]
                     if (const auto b = ui::term::queryActionBlockers(players, current_player, current_action)) {
-                        action->waste();
                         ui::term::printActionBlocked(action, b);
+                        // block action (waste coins)
+                        action->waste();
                     } else {
+                        ui::term::printAction(action);
                         // perform action
                         action->act();
-                        ui::term::printAction(action);
                     }
                 } catch (illegal_action &why) { ui::term::printActionIllegal(action, why); }
             }
@@ -92,14 +92,9 @@ namespace game {
         for (const auto &p: players)
             p->onAnyTurnEnd();
 
-        if (isWin()) ui::term::printWin(*getWinner());
+        if (isWin()) ui::term::printWin(getWinner());
 
         advanceCurrentPlayer();
-    }
-
-    void Game::removePlayer(const player::Player &player) {
-        players.erase(players.begin(), std::ranges::find(players, &player));
-        delete &player;
     }
 
     namespace ui::term {
@@ -158,16 +153,16 @@ namespace game {
             cout << endl;
         }
 
-        void printWin(const player::Player &winner) { cout << winner.getName() << " wins!" << endl; }
+        void printWin(const PlayerRef winner) { cout << winner->getName() << " wins!" << endl; }
 
-        player::Player *chooseTarget(const PlayerList &players) {
+        PlayerRef chooseTarget(const PlayerList &players) {
             cout << "Pick Target: [0-" << players.size() - 1 << "]" << endl;
             int ti = 0;
             cin >> ti;
             return players.at(ti);
         }
 
-        Action *chooseAction(player::Player *player, Game &game) {
+        Action *chooseAction(const PlayerRef player, Game &game) {
             char act_i;
             cout << "Choose action: [x:END   c:Coup   g:Gather t:Tax b:Bribe   s:Sanction a:Arrest   p:Peek o:Protect]"
                     << endl;
@@ -195,12 +190,12 @@ namespace game {
             }
         }
 
-        player::Player *queryActionBlockers(
-            const PlayerList &players, const player::Player *actor, const Action *action) {
+        PlayerRef queryActionBlockers(
+            const PlayerList &players, const PlayerRef actor, const Action *action) {
             if (action)
                 for (size_t pi = 0; pi < players.size(); pi++) {
                     if (players.at(pi) == action->actor) continue;
-                    if (const auto blocker = players.at(pi); action->blockedBy(*blocker)) {
+                    if (const auto blocker = players.at(pi); action->blockedBy(blocker)) {
                         if (players.at(pi) == action->target)
                             return action->target;
 
@@ -223,7 +218,7 @@ namespace game {
 
         void printActionIllegal(const Game::Action *action, const illegal_action &why) { cout << why.what() << endl; }
 
-        void printActionBlocked(const Game::Action *action, const player::Player *blocker) {
+        void printActionBlocked(const Game::Action *action, const PlayerRef blocker) {
             cout <<
                     action->name <<
                     " by " << action->actor->getName() <<
@@ -236,7 +231,7 @@ namespace game {
             cout << endl;
         }
 
-        void printCoupForced(const player::Player *actor) {
+        void printCoupForced(const PlayerRef actor) {
             std::cout << actor->getName() << " is forced to use coup." << std::endl;
         }
     }

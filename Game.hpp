@@ -8,6 +8,9 @@
 #include <vector>
 
 #include "Player.hpp"
+#include "typetools.hpp"
+
+using namespace player;
 
 namespace game {
     class illegal_action : public std::logic_error {
@@ -28,7 +31,7 @@ namespace game {
             ) {}
     };
 
-    typedef std::vector<player::Player *> PlayerList;
+    typedef std::vector<PlayerRef> PlayerList;
 
     class Game {
     public:
@@ -39,7 +42,7 @@ namespace game {
         PlayerList players;
         size_t ci = 0;
 
-        player::Player *target_player = nullptr;
+        PlayerRef target_player = nullptr;
         Action *current_action = nullptr;
 
     public:
@@ -53,7 +56,7 @@ namespace game {
 
         void advanceCurrentPlayer();
 
-        void setActionTarget(player::Player *target);
+        void setActionTarget(PlayerRef target);
 
         void setAction(Action *action, bool keep_existing_args);
 
@@ -63,9 +66,12 @@ namespace game {
 
         bool isWin() const { return players.size() <= 1; }
 
-        void addPlayer(player::Player *player) { players.push_back(player); }
+        void addPlayer(const PlayerRef player) { players.push_back(player); }
 
-        void removePlayer(const player::Player &player);
+        void removePlayer(const PlayerRef player)  {
+            if (removeValue<PlayerRef>(players, player))
+                delete player;
+        }
 
         auto getPlayers() const { return players; }
     };
@@ -75,14 +81,14 @@ namespace game {
 
         void printTurn(const Game &game);
 
-        void printWin(const player::Player &winner);
+        void printWin(PlayerRef winner);
 
-        static player::Player *chooseTarget(const PlayerList &players);
+        static PlayerRef chooseTarget(const PlayerList &players);
 
-        static Game::Action *chooseAction(player::Player *, Game &game);
+        static Game::Action *chooseAction(PlayerRef , Game &game);
 
-        player::Player *queryActionBlockers(
-            const PlayerList &players, const player::Player *actor,
+        PlayerRef queryActionBlockers(
+            const PlayerList &players, PlayerRef actor,
             const Game::Action *action
         );
 
@@ -90,8 +96,8 @@ namespace game {
 
         void printActionIllegal(const Game::Action *action, const illegal_action &why);
 
-        void printActionBlocked(const Game::Action *action, const player::Player *blocker);
+        void printActionBlocked(const Game::Action *action, PlayerRef blocker);
 
-        void printCoupForced(const player::Player *actor);
+        void printCoupForced(PlayerRef actor);
     }
 } // game

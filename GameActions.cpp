@@ -31,7 +31,7 @@ namespace game {
 
     int Bribe::coinCost() const { return 4; }
     void Bribe::action() const { actor->incActions(2); }
-    bool Bribe::blockedBy(Player &blocker) const { return instanceof<Judge>(&blocker); }
+    bool Bribe::blockedBy(const PlayerRef blocker) const { return instanceof<Judge>(blocker); }
 
     int StealCoins::stealAmount() const { return 1; }
     bool StealCoins::transfer() const { return true; }
@@ -79,7 +79,7 @@ namespace game {
         Action::pay();
         actor->clearCoupReq();
     }
-    void Coup::action() const { game.removePlayer(*target); }
+    void Coup::action() const { game.removePlayer(target); }
     int Coup::coinCost() const { return 7; }
-    bool Coup::blockedBy(Player &blocker) const { return target == &blocker && target->isProtected(); }
+    bool Coup::blockedBy(const PlayerRef blocker) const { return target == blocker && target->isProtected(); }
 } // game
