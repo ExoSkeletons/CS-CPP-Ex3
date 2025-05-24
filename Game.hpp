@@ -83,9 +83,9 @@ namespace game {
 
         void printWin(PlayerRef winner);
 
-        static PlayerRef chooseTarget(const PlayerList &players);
+        PlayerRef chooseTarget(const PlayerList &players);
 
-        static Game::Action *chooseAction(PlayerRef , Game &game);
+        Game::Action *chooseAction(PlayerRef , Game &game);
 
         PlayerRef queryActionBlockers(
             const PlayerList &players, PlayerRef actor,
