@@ -25,7 +25,7 @@ namespace game {
         explicit action_unavailable(const std::string &reason = std::string(""), const bool personal = false)
             : illegal_action(
                 std::string(personal
-                                ? "You can't use use this action"
+                                ? "You can't use this action"
                                 : "Action unavailable")
                 + std::string(!reason.empty() ? ", " : "") + reason
             ) {}
