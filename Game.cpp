@@ -99,6 +99,19 @@ namespace game {
         if (isWin()) ui::term::printWin(getWinner());
     }
 
+    void Game::removePlayer(const PlayerRef player) {
+        if (removeValue<PlayerRef>(players, player))
+            delete player;
+        if (player == target_player) target_player = nullptr;
+    }
+
+    void Game::removePlayer(const int pi) {
+        if (pi >= players.size() || pi < 0) return;
+        if (players.at(pi) == target_player) target_player = nullptr;
+        delete players.at(pi);
+        players.erase(players.begin() + pi);
+    }
+
     namespace ui::term {
         bool confirmAction(const string &action, const string &desc = "") {
             char confirm;
@@ -110,6 +123,59 @@ namespace game {
             } while (confirm != 'y' && confirm != 'Y' && confirm != 'n' && confirm != 'N');
             return false;
         }
+
+
+        void addPlayer(Game &game) {
+            int c;
+            std::string name;
+            PlayerRef p = nullptr;
+
+            std::cout << "Enter Player Name: ";
+            std::cin >> name;
+
+            std::cout << "Choose Role:\n0. Governor\t1. Spy\t2. Baron\t3. General\t4. Judge\t5. Merchant\n";
+            std::cin >> c;
+            switch (c) {
+                case 0: {
+                    p = new Governor();
+                    break;
+                }
+                case 1: {
+                    p = new Spy();
+                    break;
+                }
+                case 2: {
+                    p = new Baron();
+                    break;
+                }
+                case 3: {
+                    p = new General();
+                    break;
+                }
+                case 4: {
+                    p = new Judge();
+                    break;
+                }
+                case 5: {
+                    p = new Merchant();
+                    break;
+                }
+                default: p = nullptr;
+            }
+            if (p != nullptr) {
+                p->setName(name);
+                game.addPlayer(p);
+            }
+        }
+
+        void removePlayer(Game &game) {
+            int in;
+            std::cout << "Select Player # to remove: ";
+            std::cin >> in;
+            if (in >= 0 && in < game.getPlayers().size())
+                game.removePlayer(in);
+        }
+
 
         void printTurn(const Game &game) {
             cout << endl;
@@ -155,7 +221,12 @@ namespace game {
             cout << endl;
         }
 
+        void printCoupForced(const PlayerRef actor) {
+            std::cout << actor->getName() << " is forced to use coup." << std::endl;
+        }
+
         void printWin(const PlayerRef winner) { cout << winner->getName() << " wins!" << endl; }
+
 
         PlayerRef chooseTarget(const PlayerList &players) {
             cout << "Pick Target: [0-" << players.size() - 1 << "]" << endl;
@@ -239,10 +310,6 @@ namespace game {
                 : cout << "was blocked by" << blocker->getName();
             cout << "!";
             cout << endl;
-        }
-
-        void printCoupForced(const PlayerRef actor) {
-            std::cout << actor->getName() << " is forced to use coup." << std::endl;
         }
     }
 } // game

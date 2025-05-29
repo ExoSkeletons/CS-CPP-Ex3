@@ -68,11 +68,9 @@ namespace game {
 
         void addPlayer(const PlayerRef player) { players.push_back(player); }
 
-        void removePlayer(const PlayerRef player) {
-            if (removeValue<PlayerRef>(players, player))
-                delete player;
-            if (player == target_player) target_player = nullptr;
-        }
+        void removePlayer(PlayerRef player);
+
+        void removePlayer(int pi);
 
         auto getPlayers() const { return players; }
     };
@@ -80,9 +78,14 @@ namespace game {
     namespace ui::term {
         bool confirmAction(const std::string &action, const std::string &desc);
 
+
+        void addPlayer(Game &game);
+
+
         void printTurn(const Game &game);
 
         void printWin(PlayerRef winner);
+
 
         PlayerRef chooseTarget(const PlayerList &players);
 
@@ -94,6 +97,7 @@ namespace game {
             int &block_cost
         );
 
+
         void printAction(const Game::Action *action);
 
         void printActionIllegal(const Game::Action *action, const illegal_action &why);
@@ -101,5 +105,7 @@ namespace game {
         void printActionBlocked(const Game::Action *action, PlayerRef blocker);
 
         void printCoupForced(PlayerRef actor);
+
+        void removePlayer(const Game &game);
     }
 } // game
