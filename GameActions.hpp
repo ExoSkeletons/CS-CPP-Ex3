@@ -146,4 +146,12 @@ namespace game {
 
         void action() const override;
     };
+
+    struct Block final : Action {
+        Block(const PlayerRef actor, const PlayerRef target, Game &game): Action("Block", actor, target, game) {}
+
+        void assertLegal() const override;
+
+        void action() const override;
+    };
 } // game

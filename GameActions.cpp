@@ -73,6 +73,13 @@ namespace game {
         actor->incActions(1);
     }
 
+    void Block::assertLegal() const {
+        if (!instanceof<Spy>(actor)) throw action_unavailable();
+        Action::assertLegal();
+    }
+
+    void Block::action() const { actor->block(); }
+
     void Coup::pay() const {
         Action::pay();
         actor->clearCoupReq();

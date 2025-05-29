@@ -167,10 +167,11 @@ namespace game {
         Action *chooseAction(const PlayerRef player, Game &game) {
             char act_i;
             cout <<
-                    "Choose action: [x:END   c:Coup   g:Gather t:Tax i:Invest    b:Bribe   s:Sanction a:Arrest   p:Peek]"
+                    "Choose action: [x:END-TURN   c:Coup   g:Gather t:Tax i:Invest    b:Bribe   s:Sanction a:Arrest   l:Block p:Peek]"
                     << endl;
             cin >> act_i;
             switch (act_i) {
+                case '0':
                 case 'x': {
                     player->endTurn();
                     return nullptr;
@@ -185,9 +186,11 @@ namespace game {
                 case 'b': return new Bribe(player, game);
 
                 // nullptr target signals waiting to be filled later
+
                 case 's': return new Sanction(player, nullptr, game);
                 case 'a': return new Arrest(player, nullptr, game);
 
+                case 'l': return new Block(player, nullptr, game);
                 case 'p': return new Peek(player, nullptr, game);
 
                 default: return nullptr;

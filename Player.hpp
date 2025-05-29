@@ -21,6 +21,7 @@ namespace player {
                 arrested = false,
                 sanctioned = false,
                 hand_shown = false,
+                blocked = false,
 
                 must_coup = false;
 
@@ -65,12 +66,14 @@ namespace player {
         virtual void arrest() { arrested = true; }
         virtual void sanction() { sanctioned = true; }
         virtual void reveal() { hand_shown = true; }
+        virtual void block() { blocked = true; }
 
         void clearCoupReq() { must_coup = false; }
 
         bool isArrested() const { return arrested; }
         bool isSanctioned() const { return sanctioned; }
         bool isHandShown() const { return hand_shown; }
+        bool isBlocked() const { return blocked; }
 
         bool mustCoup() const { return must_coup; }
     };

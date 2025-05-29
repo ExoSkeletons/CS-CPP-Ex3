@@ -16,7 +16,7 @@ namespace player {
             must_coup = true;
     }
 
-    void Player::onTurnEnd() { sanctioned = arrested = false; }
+    void Player::onTurnEnd() { sanctioned = arrested = blocked = false; }
     void Player::onAnyTurnStart() { hand_shown = false; }
     void Player::onAnyTurnEnd() { hand_shown = false; }
 
