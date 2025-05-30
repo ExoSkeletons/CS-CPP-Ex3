@@ -7,26 +7,36 @@ int main() {
     game::Game game;
 
 
+    /*/
     game.addPlayer((new Merchant())->setName("Whitney"));
     game.addPlayer((new Baron())->setName("Marcy"));
     game.addPlayer((new Spy())->setName("Frank"));
     game.addPlayer((new Judge())->setName("Bill"));
     game.addPlayer((new Baron())->setName("Melvin"));
     game.addPlayer((new Governor())->setName("Peter"));
+    //*/
 
 
     int in;
     std::string name;
 
     do {
-        if (game.getPlayers().size() >= 2)
-            std::cout << "0. Start Game\n";
-        std::cout <<
-                "1. Add Player\n" <<
-                "2. Remove Player\n";
+        // print players
+        std::cout << "Players:" << std::endl;
+        if (game.getPlayers().size() == 0) std::cout << "[none]";
+        else
+            for (int i = 0; i < game.getPlayers().size(); i++) {
+                const auto p = game.getPlayers()[i];
+                std::cout << i << ") " << p->getName() << " [" << p->getRoleName() << "]" << std::endl;
+            }
+        std::cout << std::endl;
+        if (game.getPlayers().size() >= 2) std::cout << "0. Start Game\n";
+        std::cout << "1. Add Player\n";
+        if (game.getPlayers().size() > 0) std::cout << "2. Remove Player\n";
+        // input
         std::cin >> in;
+
         switch (in) {
-            case 0: break;
             case 1: {
                 game::ui::term::addPlayer(game);
                 break;
@@ -35,9 +45,12 @@ int main() {
                 game::ui::term::removePlayer(game);
                 break;
             }
+            case 0:
             default: ;
         }
-    } while (in != '0' && game.getPlayers().size() < 2);
+    } while (!(in == 0 && game.getPlayers().size() > 1));
+
+    std::cout << "\n\n---------- Game Start! ------------\n\n";
 
     while (!game.isWin()) {
         game.playTurn();
