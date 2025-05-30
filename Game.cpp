@@ -169,7 +169,7 @@ namespace game {
             PlayerRef p = nullptr;
 
             std::cout << "Enter Player Name: ";
-            std::cin >> name;
+            std::getline(std::cin >> std::ws, name); // consume any leading whitespace and read all line
 
             std::cout << "Choose Role:\n0. Governor\t1. Spy\t2. Baron\t3. General\t4. Judge\t5. Merchant\n";
             std::cin >> c;

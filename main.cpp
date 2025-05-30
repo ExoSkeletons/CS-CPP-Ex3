@@ -33,12 +33,17 @@ int main() {
         if (game.getPlayers().size() >= 2) std::cout << "0. Start Game\n";
         std::cout << "1. Add Player\n";
         if (game.getPlayers().size() > 0) std::cout << "2. Remove Player\n";
+
         // input
-        std::cin >> in;
+        while (!(std::cin >> in)) {
+            std::cin.clear(); // clear error flags
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // discard
+        }
 
         switch (in) {
             case 1: {
                 game::ui::term::addPlayer(game);
+                //exit(1);
                 break;
             }
             case 2: {
