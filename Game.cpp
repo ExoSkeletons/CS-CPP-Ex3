@@ -7,7 +7,6 @@
 #include "GameActions.hpp"
 #include "Game.hpp"
 
-#include <map>
 #include <ranges>
 
 using std::string, std::cout, std::cin, std::endl;
@@ -24,24 +23,24 @@ namespace game {
             current_action->actor = getCurrentPlayer();
     }
 
-    auto Game::actionsMap(const PlayerRef player) {
+    auto Game::availableActionsFor(const PlayerRef player) {
         // map action to input key for selection
-        std::map<Action *, char> a;
+        std::vector<std::pair<Action *, char> > a;
         Game &game = *this;
 
-        a.insert(std::pair<Action *, char>(new Coup(player, nullptr, game), 'c'));
+        a.emplace_back(std::pair<Action *, char>(new Coup(player, nullptr, game), 'c'));
 
-        a.insert(std::pair<Action *, char>(new Gather(player, game), 'g'));
-        a.insert(std::pair<Action *, char>(new Tax(player, game), 't'));
-        a.insert(std::pair<Action *, char>(new Invest(player, game), 'i'));
+        a.emplace_back(std::pair<Action *, char>(new Gather(player, game), 'g'));
+        a.emplace_back(std::pair<Action *, char>(new Tax(player, game), 't'));
+        a.emplace_back(std::pair<Action *, char>(new Invest(player, game), 'i'));
 
-        a.insert(std::pair<Action *, char>(new Bribe(player, game), 'b'));
+        a.emplace_back(std::pair<Action *, char>(new Bribe(player, game), 'b'));
 
-        a.insert(std::pair<Action *, char>(new Sanction(player, nullptr, game), 's'));
-        a.insert(std::pair<Action *, char>(new Arrest(player, nullptr, game), 'a'));
+        a.emplace_back(std::pair<Action *, char>(new Sanction(player, nullptr, game), 's'));
+        a.emplace_back(std::pair<Action *, char>(new Arrest(player, nullptr, game), 'a'));
 
-        a.insert(std::pair<Action *, char>(new Block(player, nullptr, game), 'l'));
-        a.insert(std::pair<Action *, char>(new Peek(player, nullptr, game), 'p'));
+        a.emplace_back(std::pair<Action *, char>(new Block(player, nullptr, game), 'l'));
+        a.emplace_back(std::pair<Action *, char>(new Peek(player, nullptr, game), 'p'));
 
         // remove un-available actions
         for (auto it = a.begin(); it != a.end();) {
@@ -274,14 +273,14 @@ namespace game {
         }
 
         Action *chooseAction(const PlayerRef player, Game &game) {
-            const auto actions = game.actionsMap(player);
+            const auto actions = game.availableActionsFor(player);
             Action *action = nullptr;
             char act_in;
 
             cout <<
                     "Choose action: [" <<
                     "x:END-TURN";
-            for (auto [a, c] : actions)
+            for (auto [a, c]: actions)
                 std::cout << "    " << c << ":" << a->name;
             cout << "]" << endl;
 

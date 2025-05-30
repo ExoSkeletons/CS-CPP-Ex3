@@ -8,7 +8,6 @@
 #include <vector>
 
 #include "Player.hpp"
-#include "typetools.hpp"
 
 using namespace player;
 
@@ -52,7 +51,7 @@ namespace game {
 
         void selectCurrentPlayer(int ci);
 
-        auto actionsMap(PlayerRef player);
+        auto availableActionsFor(PlayerRef player);
 
         auto getCurrentPlayer() const { return players.at(ci); }
 
