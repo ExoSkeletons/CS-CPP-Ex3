@@ -7,6 +7,9 @@
 #include "GameActions.hpp"
 #include "Game.hpp"
 
+#include <map>
+#include <ranges>
+
 using std::string, std::cout, std::cin, std::endl;
 
 namespace game {
@@ -19,6 +22,40 @@ namespace game {
         this->ci = ci;
         if (current_action)
             current_action->actor = getCurrentPlayer();
+    }
+
+    auto Game::actionsMap(const PlayerRef player) {
+        // map action to input key for selection
+        std::map<Action *, char> a;
+        Game &game = *this;
+
+        a.insert(std::pair<Action *, char>(new Coup(player, nullptr, game), 'c'));
+
+        a.insert(std::pair<Action *, char>(new Gather(player, game), 'g'));
+        a.insert(std::pair<Action *, char>(new Tax(player, game), 't'));
+        a.insert(std::pair<Action *, char>(new Invest(player, game), 'i'));
+
+        a.insert(std::pair<Action *, char>(new Bribe(player, game), 'b'));
+
+        a.insert(std::pair<Action *, char>(new Sanction(player, nullptr, game), 's'));
+        a.insert(std::pair<Action *, char>(new Arrest(player, nullptr, game), 'a'));
+
+        a.insert(std::pair<Action *, char>(new Block(player, nullptr, game), 'l'));
+        a.insert(std::pair<Action *, char>(new Peek(player, nullptr, game), 'p'));
+
+        // remove un-available actions
+        for (auto it = a.begin(); it != a.end();) {
+            try {
+                it->first->assertActorValid();
+                ++it; // move up
+            } catch (illegal_action) {
+                const auto tmp = it->first;
+                it = a.erase(it); // erase and move to the next valid element
+                delete tmp; // delete memory
+            }
+        }
+
+        return a;
     }
 
     void Game::advanceTurn() {
@@ -236,36 +273,32 @@ namespace game {
         }
 
         Action *chooseAction(const PlayerRef player, Game &game) {
-            char act_i;
+            const auto actions = game.actionsMap(player);
+            Action *action = nullptr;
+            char act_in;
+
             cout <<
-                    "Choose action: [x:END-TURN   c:Coup   g:Gather t:Tax i:Invest    b:Bribe   s:Sanction a:Arrest   l:Block p:Peek]"
-                    << endl;
-            cin >> act_i;
-            switch (act_i) {
-                case '0':
-                case 'x': {
-                    player->endTurn();
-                    return nullptr;
-                }
+                    "Choose action: [" <<
+                    "x:END-TURN";
+            for (auto [a, c] : actions)
+                std::cout << "    " << c << ":" << a->name;
+            cout << "]" << endl;
 
-                case 'c': return new Coup(player, nullptr, game);
+            // input selection
+            cin >> act_in;
 
-                case 'g': return new Gather(player, game);
-                case 't': return new Tax(player, game);
-                case 'i': return new Invest(player, game);
-
-                case 'b': return new Bribe(player, game);
-
-                // nullptr target signals waiting to be filled later
-
-                case 's': return new Sanction(player, nullptr, game);
-                case 'a': return new Arrest(player, nullptr, game);
-
-                case 'l': return new Block(player, nullptr, game);
-                case 'p': return new Peek(player, nullptr, game);
-
-                default: return nullptr;
-            }
+            // pick action matching selected input
+            if (act_in == 'x') { player->endTurn(); } else
+                for (auto [a, c]: actions)
+                    if (act_in == c) {
+                        action = a;
+                        break;
+                    }
+            // free up map
+            for (const auto a: actions | std::views::keys)
+                if (a != action)
+                    delete a;
+            return action;
         }
 
         PlayerRef queryActionBlockers(

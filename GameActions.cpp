@@ -6,11 +6,6 @@
 #include "typetools.hpp"
 
 namespace game {
-    void Action::assertLegal() const {
-        if (!actor->hasActions()) throw illegal_action("No actions left");
-        if (actor->getCoins() < coinCost()) throw illegal_action("Not enough coins for action");
-    }
-
     void Action::pay() const {
         actor->incCoins(-coinCost());
         actor->act();
@@ -20,9 +15,9 @@ namespace game {
     void IncCoins::action() const { actor->incCoins(coinAmount()); }
     int IncCoins::coinAmount() const { return 1; }
 
-    void IncCoins::assertLegal() const {
-        if (actor->isSanctioned()) throw action_unavailable("you're sanctioned", true);
-        Action::assertLegal();
+    void IncCoins::assertActorValid() const {
+        if (actor->isSanctioned())
+            throw action_unavailable("you're sanctioned", true);
     }
 
     int Tax::coinAmount() const { return instanceof<Governor>(actor) ? 3 : 2; }
@@ -34,12 +29,11 @@ namespace game {
     int StealCoins::stealAmount() const { return 1; }
     bool StealCoins::transfer() const { return true; }
 
-    void StealCoins::assertLegal() const {
+    void StealCoins::assertTargetValid() const {
         if (target->isArrested())
             throw action_unavailable("target is already arrested", true);
         if (target->getCoins() < stealAmount())
             throw action_unavailable("target doesn't have enough to steal");
-        Action::assertLegal();
     }
 
     void StealCoins::action() const {
@@ -61,23 +55,16 @@ namespace game {
 
     int Invest::coinCost() const { return 3; }
     int Invest::coinAmount() const { return 6; }
-    void Invest::assertLegal() const { if (!instanceof<Baron>(actor)) throw action_unavailable("", true); }
+    void Invest::assertActorValid() const { if (!instanceof<Baron>(actor)) throw action_unavailable("", true); }
 
-    void Peek::assertLegal() const {
-        if (!instanceof<Spy>(actor)) throw action_unavailable("", true);
-        Action::assertLegal();
-    }
+    void Peek::assertActorValid() const { if (!instanceof<Spy>(actor)) throw action_unavailable("", true); }
 
     void Peek::action() const {
         target->reveal();
         actor->incActions(1);
     }
 
-    void Block::assertLegal() const {
-        if (!instanceof<Spy>(actor)) throw action_unavailable();
-        Action::assertLegal();
-    }
-
+    void Block::assertActorValid() const { if (!instanceof<Spy>(actor)) throw action_unavailable("", true); }
     void Block::action() const { actor->block(); }
 
     void Coup::pay() const {
@@ -85,7 +72,11 @@ namespace game {
         actor->clearCoupReq();
     }
 
-    void Coup::assertLegal() const { if (actor == target) throw action_unavailable("cannot coup self"); }
+    void Coup::assertLegal() const {
+        if (actor == target && actor != nullptr) throw action_unavailable("cannot coup self");
+        Action::assertLegal();
+    }
+
     void Coup::action() const { game.removePlayer(target); }
     int Coup::coinCost() const { return 7; }
 

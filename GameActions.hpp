@@ -30,7 +30,16 @@ namespace game {
             return false;
         }
 
-        virtual void assertLegal() const;
+        virtual void assertActorValid() const { if (actor == nullptr) throw illegal_action("actor is null"); }
+
+        virtual void assertTargetValid() const { if (target == nullptr) throw illegal_action("target is null"); }
+
+        virtual void assertLegal() const {
+            if (!actor->hasActions()) throw illegal_action("No actions left");
+            if (actor->getCoins() < coinCost()) throw illegal_action("Not enough coins for action");
+            assertActorValid();
+            assertTargetValid();
+        }
 
         void act() const {
             pay();
@@ -69,7 +78,7 @@ namespace game {
 
         void action() const override;
 
-        void assertLegal() const override;
+        void assertActorValid() const override;
 
         virtual int coinAmount() const;
     };
@@ -82,7 +91,7 @@ namespace game {
 
         virtual bool transfer() const;
 
-        void assertLegal() const override;
+        void assertTargetValid() const override;
 
         void action() const override;
     };
@@ -105,7 +114,7 @@ namespace game {
 
         int coinAmount() const override;
 
-        void assertLegal() const override;
+        void assertActorValid() const override;
     };
 
 
@@ -142,7 +151,7 @@ namespace game {
         Peek(const PlayerRef actor, const PlayerRef target, Game &game) : Action(
             "Peek", actor, target, game) {}
 
-        void assertLegal() const override;
+        void assertActorValid() const override;
 
         void action() const override;
     };
@@ -150,7 +159,7 @@ namespace game {
     struct Block final : Action {
         Block(const PlayerRef actor, const PlayerRef target, Game &game): Action("Block", actor, target, game) {}
 
-        void assertLegal() const override;
+        void assertActorValid() const override;
 
         void action() const override;
     };

@@ -52,6 +52,8 @@ namespace game {
 
         void selectCurrentPlayer(int ci);
 
+        auto actionsMap(PlayerRef player);
+
         auto getCurrentPlayer() const { return players.at(ci); }
 
         void advanceTurn();
@@ -81,6 +83,8 @@ namespace game {
 
         void addPlayer(Game &game);
 
+        void removePlayer(Game &game);
+
 
         void printTurn(const Game &game);
 
@@ -105,7 +109,5 @@ namespace game {
         void printActionBlocked(const Game::Action *action, PlayerRef blocker);
 
         void printCoupForced(PlayerRef actor);
-
-        void removePlayer(const Game &game);
     }
 } // game
