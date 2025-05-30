@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall -Wextra -g
+CXXFLAGS = -Wall -Wextra -g --std c++20
 SOURCES = $(wildcard *.cpp)
 HEADERS = $(wildcard *.h)
 MAIN_FILE = main
