@@ -65,7 +65,11 @@ namespace game {
     }
 
     void Block::assertActorValid() const { if (!instanceof<Spy>(actor)) throw action_unavailable("", true); }
-    void Block::action() const { actor->block(); }
+
+    void Block::action() const {
+        target->block();
+        actor->incActions(1);
+    }
 
     void Coup::pay() const {
         Action::pay();
