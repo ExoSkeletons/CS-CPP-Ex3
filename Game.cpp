@@ -9,6 +9,8 @@
 
 #include <ranges>
 
+#include "typetools.hpp"
+
 using std::string, std::cout, std::cin, std::endl;
 
 namespace game {
