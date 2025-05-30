@@ -230,11 +230,11 @@ namespace game {
             cout <<
                     "   " << "Name" << string(cw_name - 4, ' ') << pads <<
                     "Role" << string(cw_role - 4, ' ') << pads <<
-                    "Sc Ar" << " " << "Coins" <<
+                    "Sc Ar Bl" << " " << "Coins" <<
                     endl;
             cout <<
                     "   " << string(cw_name, '-') << pads << string(cw_role, '-') <<
-                    pads << "-  - " << " " << "-----" <<
+                    pads << "-  -  - " << " " << "-----" <<
                     endl;
 
             const auto current_player = game.getCurrentPlayer();
@@ -249,7 +249,8 @@ namespace game {
                         name << string(cw_name - name.length(), ' ') << pads <<
                         role << string(cw_role - role.length(), ' ') << pads <<
                         (p->isSanctioned() ? "x " : "  ") << " " <<
-                        (p->isArrested() ? "x " : "  ") << " ";
+                        (p->isArrested() ? "x " : "  ") << " " <<
+                        (p->isBlocked() ? "x " : "  ") << " ";
                 if (p->isHandShown() || isPC)
                     cout <<
                             p->getCoins();
