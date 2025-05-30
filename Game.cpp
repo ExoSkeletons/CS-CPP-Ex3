@@ -280,11 +280,14 @@ namespace game {
             char act_in;
 
             cout <<
-                    "Choose action: [" <<
+                    "Choose action: " <<
                     "x:END-TURN";
-            for (auto [a, c]: actions)
-                std::cout << "    " << c << ":" << a->name;
-            cout << "]" << endl;
+            for (auto [a, c]: actions) {
+                cout << "    " << c << ":" << a->name;
+                if (const auto cost = a->coinCost(); cost>0)
+                    cout<< " " << a->coinCost();
+            }
+            cout << endl;
 
             // input selection
             cin >> act_in;
